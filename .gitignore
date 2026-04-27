@@ -1,0 +1,5 @@
+PASSWORDS.md
+scripts/generate-password.js
+.DS_Store
+Thumbs.db
+node_modules/
