@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Garden Admin</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { min-height: 100dvh; padding: var(--gap); }
+
+    /* ── Auth screen ─────────────────────────── */
+    #auth-screen {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      text-align: center;
+    }
+    #auth-screen h2 { font-size: clamp(1.5rem, 4vw, 2.5rem); }
+    #auth-screen p { opacity: 0.6; font-style: italic; }
+    .auth-input {
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      padding: 0.7em 1.2em;
+      border: 1.5px solid rgba(0,0,0,0.2);
+      border-radius: 0.5rem;
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(8px);
+      outline: none;
+      width: min(320px, 90vw);
+      text-align: center;
+      letter-spacing: 0.1em;
+    }
+    .auth-input:focus { border-color: var(--deep-rose); }
+    .auth-error { color: var(--deep-rose); font-size: 0.95rem; opacity: 0; transition: opacity 0.3s; }
+    .auth-error.visible { opacity: 1; }
+
+    /* ── Dashboard ───────────────────────────── */
+    #dashboard { display: none; max-width: 900px; margin: 0 auto; padding-bottom: 4rem; }
+    #dashboard.visible { display: block; }
+
+    .dash-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+      padding-top: 1rem;
+    }
+    .dash-header h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); }
+    .dash-header p { opacity: 0.55; font-style: italic; font-size: 0.95rem; }
+
+    /* Sections */
+    .admin-section {
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: var(--radius);
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .admin-section h3 {
+      font-size: 1.2rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      letter-spacing: 0.05em;
+    }
+
+    /* Form rows */
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 0.6rem 1.2rem;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+    @media (max-width: 500px) { .field-row { grid-template-columns: 1fr; } }
+    .field-row label {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      opacity: 0.7;
+    }
+    .admin-input, .admin-select, .admin-textarea {
+      font-family: var(--font-body);
+      font-size: 1rem;
+      padding: 0.5em 0.8em;
+      border: 1px solid rgba(0,0,0,0.15);
+      border-radius: 0.4rem;
+      background: rgba(255,255,255,0.7);
+      outline: none;
+      width: 100%;
+      color: var(--ink);
+    }
+    .admin-input:focus, .admin-select:focus, .admin-textarea:focus {
+      border-color: var(--deep-rose);
+    }
+    .admin-textarea { resize: vertical; min-height: 60px; }
+
+    /* Range slider */
+    .slider-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr auto;
+      gap: 0.6rem 1rem;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+    @media (max-width: 500px) { .slider-row { grid-template-columns: 1fr 1fr auto; } }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--deep-rose);
+    }
+    .slider-val {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      min-width: 3ch;
+      text-align: right;
+      opacity: 0.7;
+    }
+
+    /* Flower editor accordion */
+    .flower-item {
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 0.8rem;
+      margin-bottom: 0.6rem;
+      overflow: hidden;
+    }
+    .flower-item-head {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.8rem 1rem;
+      cursor: pointer;
+      background: rgba(255,255,255,0.4);
+      transition: background 0.2s;
+      user-select: none;
+    }
+    .flower-item-head:hover { background: rgba(255,255,255,0.65); }
+    .flower-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .flower-item-head span { font-family: var(--font-display); font-size: 1.05rem; flex: 1; }
+    .flower-item-head .chevron { transition: transform 0.3s; opacity: 0.5; }
+    .flower-item.open .chevron { transform: rotate(180deg); }
+    .flower-item-body { display: none; padding: 0.8rem 1rem 1rem; }
+    .flower-item.open .flower-item-body { display: block; }
+
+    /* Save bar */
+    .save-bar {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.8rem;
+      z-index: 200;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .save-toast {
+      background: #3a8040;
+      color: white;
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      padding: 0.5em 1.2em;
+      border-radius: 2em;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .save-toast.visible { opacity: 1; }
+  </style>
+</head>
+<body class="env-morning">
+
+  <!-- Auth -->
+  <div id="auth-screen">
+    <div>
+      <p class="greeting" style="letter-spacing:.2em;text-transform:uppercase;opacity:.5;font-style:italic;margin-bottom:.3rem">Admin</p>
+      <h2>Garden Dashboard</h2>
+    </div>
+    <p>Enter the admin password to continue.</p>
+    <input class="auth-input" type="password" id="pw-input" placeholder="Password" autocomplete="current-password" />
+    <button class="btn btn-solid" onclick="checkPassword()">Enter Garden ✦</button>
+    <p class="auth-error" id="auth-error">Incorrect password. Try again.</p>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard">
+    <div class="dash-header">
+      <div>
+        <h1>Garden Admin 🌸</h1>
+        <p>Changes are saved to your browser. Update config.js for permanent changes.</p>
+      </div>
+      <a href="index.html" class="btn">View Garden →</a>
+    </div>
+
+    <!-- Personal -->
+    <div class="admin-section">
+      <h3>Personal</h3>
+      <div class="field-row">
+        <label for="a-name">Recipient name</label>
+        <input class="admin-input" id="a-name" type="text" />
+      </div>
+      <div class="field-row">
+        <label for="a-welcome">Welcome message</label>
+        <textarea class="admin-textarea" id="a-welcome"></textarea>
+      </div>
+    </div>
+
+    <!-- Gallery -->
+    <div class="admin-section">
+      <h3>Gallery</h3>
+      <div class="field-row">
+        <label for="a-layout">Default layout</label>
+        <select class="admin-select" id="a-layout">
+          <option value="grid">Grid</option>
+          <option value="scatter">Scatter</option>
+          <option value="list">List</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Environment -->
+    <div class="admin-section">
+      <h3>Default Environment</h3>
+      <div class="field-row">
+        <label for="a-time">Time of day</label>
+        <select class="admin-select" id="a-time">
+          <option value="morning">🌅 Morning</option>
+          <option value="sunset">🌇 Sunset</option>
+          <option value="night">🌙 Night</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label for="a-weather">Weather</label>
+        <select class="admin-select" id="a-weather">
+          <option value="sunny">☀️ Sunny</option>
+          <option value="rainy">🌧 Rainy</option>
+          <option value="foggy">🌫 Foggy</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label for="a-season">Season</label>
+        <select class="admin-select" id="a-season">
+          <option value="spring">🌸 Spring</option>
+          <option value="summer">🌻 Summer</option>
+          <option value="autumn">🍂 Autumn</option>
+          <option value="winter">❄️ Winter</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Repulsion -->
+    <div class="admin-section">
+      <h3>Repulsion Effect</h3>
+      <div class="slider-row">
+        <label>Intensity</label>
+        <input type="range" id="a-intensity" min="1" max="100" />
+        <span class="slider-val" id="a-intensity-val"></span>
+      </div>
+      <div class="slider-row">
+        <label>Radius (px)</label>
+        <input type="range" id="a-radius" min="30" max="300" />
+        <span class="slider-val" id="a-radius-val"></span>
+      </div>
+      <div class="slider-row">
+        <label>Return speed (s)</label>
+        <input type="range" id="a-return" min="0.2" max="5" step="0.1" />
+        <span class="slider-val" id="a-return-val"></span>
+      </div>
+    </div>
+
+    <!-- Flowers -->
+    <div class="admin-section">
+      <h3>Flowers</h3>
+      <div id="flower-editor"></div>
+    </div>
+
+    <!-- Reset -->
+    <div style="text-align:right;margin-top:1rem;">
+      <button class="btn" onclick="resetAll()" style="color:var(--deep-rose);border-color:var(--deep-rose)">Reset all to defaults</button>
+    </div>
+  </div>
+
+  <!-- Save bar -->
+  <div class="save-bar">
+    <button class="btn btn-solid" onclick="saveAll()">Save changes ✦</button>
+    <span class="save-toast" id="save-toast">Saved!</span>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    // ── Auth ─────────────────────────────────────
+    function checkPassword() {
+      const input = document.getElementById('pw-input').value;
+      if (input === GARDEN_CONFIG.adminPassword) {
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('dashboard').classList.add('visible');
+        populateDashboard();
+      } else {
+        document.getElementById('auth-error').classList.add('visible');
+        document.getElementById('pw-input').value = '';
+        document.getElementById('pw-input').focus();
+      }
+    }
+    document.getElementById('pw-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') checkPassword();
+    });
+
+    // ── Populate ──────────────────────────────────
+    function populateDashboard() {
+      const c = GARDEN_CONFIG;
+      document.getElementById('a-name').value    = c.recipientName;
+      document.getElementById('a-welcome').value = c.welcomeMessage;
+      document.getElementById('a-layout').value  = c.defaultGalleryLayout;
+      document.getElementById('a-time').value    = c.environment.timeOfDay;
+      document.getElementById('a-weather').value = c.environment.weather;
+      document.getElementById('a-season').value  = c.environment.season;
+
+      setSlider('a-intensity', c.repulsion.intensity, 'a-intensity-val');
+      setSlider('a-radius',    c.repulsion.radius,    'a-radius-val');
+      setSlider('a-return',    c.repulsion.returnSpeed,'a-return-val');
+
+      buildFlowerEditor();
+    }
+
+    function setSlider(id, val, valId) {
+      const el = document.getElementById(id);
+      el.value = val;
+      document.getElementById(valId).textContent = val;
+      el.addEventListener('input', () => {
+        document.getElementById(valId).textContent = el.value;
+      });
+    }
+
+    // ── Flower editor ─────────────────────────────
+    function buildFlowerEditor() {
+      const container = document.getElementById('flower-editor');
+      GARDEN_CONFIG.flowers.forEach(f => {
+        const item = document.createElement('div');
+        item.className = 'flower-item';
+        item.innerHTML = `
+          <div class="flower-item-head" onclick="this.parentElement.classList.toggle('open')">
+            <div class="flower-dot" style="background:${f.color}"></div>
+            <span>${f.name}</span>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="flower-item-body">
+            <div class="field-row">
+              <label>Fun fact</label>
+              <textarea class="admin-textarea" id="ff-${f.id}">${f.funFact}</textarea>
+            </div>
+            <div class="field-row">
+              <label>Personal note</label>
+              <textarea class="admin-textarea" id="pn-${f.id}">${f.personalNote}</textarea>
+            </div>
+          </div>`;
+        container.appendChild(item);
+      });
+    }
+
+    // ── Save ──────────────────────────────────────
+    function saveAll() {
+      const overrides = {
+        recipientName:       document.getElementById('a-name').value,
+        welcomeMessage:      document.getElementById('a-welcome').value,
+        defaultGalleryLayout:document.getElementById('a-layout').value,
+        environment: {
+          timeOfDay: document.getElementById('a-time').value,
+          weather:   document.getElementById('a-weather').value,
+          season:    document.getElementById('a-season').value,
+        },
+        repulsion: {
+          intensity:   parseFloat(document.getElementById('a-intensity').value),
+          radius:      parseFloat(document.getElementById('a-radius').value),
+          returnSpeed: parseFloat(document.getElementById('a-return').value),
+        },
+        flowers: GARDEN_CONFIG.flowers.map(f => ({
+          id:           f.id,
+          funFact:      (document.getElementById('ff-' + f.id) || {}).value || f.funFact,
+          personalNote: (document.getElementById('pn-' + f.id) || {}).value || f.personalNote,
+        }))
+      };
+
+      localStorage.setItem('garden_admin_overrides', JSON.stringify(overrides));
+      localStorage.setItem('garden_env', JSON.stringify(overrides.environment));
+
+      const toast = document.getElementById('save-toast');
+      toast.classList.add('visible');
+      setTimeout(() => toast.classList.remove('visible'), 2200);
+    }
+
+    function resetAll() {
+      if (!confirm('Reset all admin overrides and return to config.js defaults?')) return;
+      localStorage.removeItem('garden_admin_overrides');
+      localStorage.removeItem('garden_env');
+      localStorage.removeItem('garden_layout');
+      location.reload();
+    }
+  </script>
+</body>
+</html>

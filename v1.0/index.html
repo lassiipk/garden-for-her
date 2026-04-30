@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Garden For You 🌸</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Page layout ─────────────────────────── */
+    .garden-header {
+      text-align: center;
+      padding: clamp(3rem, 8vw, 6rem) var(--gap) clamp(1.5rem, 4vw, 3rem);
+      position: relative;
+      z-index: 2;
+    }
+    .garden-header .greeting {
+      font-family: var(--font-display);
+      font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-bottom: 0.5rem;
+      font-style: italic;
+    }
+    .garden-header h1 { margin-bottom: 0.8rem; }
+    .garden-header .welcome {
+      font-size: clamp(1.05rem, 2.5vw, 1.3rem);
+      opacity: 0.75;
+      font-style: italic;
+      max-width: 36ch;
+      margin: 0 auto;
+    }
+
+    /* ── Layout toggle ───────────────────────── */
+    .layout-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+      position: relative;
+      z-index: 2;
+    }
+    .layout-btn {
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      padding: 0.4em 1.1em;
+      border-radius: 2em;
+      border: 1px solid rgba(0,0,0,0.2);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.25s;
+      color: inherit;
+    }
+    .layout-btn.active {
+      background: var(--deep-rose);
+      border-color: var(--deep-rose);
+      color: white;
+    }
+
+    /* ── Grid layout ─────────────────────────── */
+    #flower-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 var(--gap) clamp(3rem, 8vw, 5rem);
+      position: relative;
+      z-index: 2;
+    }
+    #flower-grid.layout-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+      gap: var(--gap);
+    }
+    #flower-grid.layout-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 700px;
+    }
+    #flower-grid.layout-scatter {
+      display: block;
+      min-height: 80vh;
+      position: relative;
+    }
+
+    /* ── Flower card ─────────────────────────── */
+    .flower-card {
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .flower-card .card-inner {
+      padding: clamp(1.2rem, 3vw, 2rem);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .layout-list .flower-card .card-inner {
+      flex-direction: row;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    .flower-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      flex-shrink: 0;
+      transition: transform 0.4s var(--ease-gentle);
+    }
+    .flower-card:hover .flower-icon { transform: rotate(12deg) scale(1.1); }
+    .layout-list .flower-icon { width: 64px; height: 64px; font-size: 1.8rem; }
+
+    .flower-card h3 {
+      font-size: clamp(1.3rem, 3vw, 1.7rem);
+      font-weight: 400;
+    }
+    .flower-card .fun-fact {
+      font-size: 0.92rem;
+      opacity: 0.6;
+      font-style: italic;
+      line-height: 1.5;
+    }
+    .flower-card .visit-hint {
+      margin-top: auto;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .flower-card:hover .visit-hint { opacity: 0.5; }
+
+    /* Scatter layout */
+    .layout-scatter .flower-card {
+      position: absolute;
+      width: clamp(180px, 25vw, 240px);
+    }
+
+    /* ── Entrance animation ───────────────────── */
+    .flower-card {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: cardIn 0.6s var(--ease-gentle) forwards;
+    }
+    @keyframes cardIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Ambient petals ──────────────────────── */
+    .ambient-petal {
+      position: fixed;
+      pointer-events: none;
+      font-size: clamp(1rem, 3vw, 1.6rem);
+      opacity: 0;
+      animation: petalDrift linear infinite;
+      z-index: 0;
+    }
+    @keyframes petalDrift {
+      0%   { transform: translateY(110vh) rotate(0deg) translateX(0); opacity: 0; }
+      5%   { opacity: 0.7; }
+      95%  { opacity: 0.4; }
+      100% { transform: translateY(-20vh) rotate(720deg) translateX(40px); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <canvas class="stars" id="stars"></canvas>
+
+  <!-- Header -->
+  <header class="garden-header">
+    <p class="greeting" id="greeting-line">A garden for</p>
+    <h1 id="site-title">loading…</h1>
+    <p class="welcome" id="welcome-msg"></p>
+  </header>
+
+  <!-- Layout toggle -->
+  <div class="layout-toggle" role="group" aria-label="Gallery layout">
+    <button class="layout-btn" data-layout="grid">Grid</button>
+    <button class="layout-btn" data-layout="scatter">Scatter</button>
+    <button class="layout-btn" data-layout="list">List</button>
+  </div>
+
+  <!-- Flower grid -->
+  <main id="flower-grid" class="layout-grid" aria-label="Flower gallery"></main>
+
+  <!-- Environment toggle -->
+  <aside class="env-toggle" aria-label="Environment settings">
+    <label for="env-time">Time</label>
+    <select id="env-time">
+      <option value="morning">🌅 Morning</option>
+      <option value="sunset">🌇 Sunset</option>
+      <option value="night">🌙 Night</option>
+    </select>
+    <label for="env-weather">Weather</label>
+    <select id="env-weather">
+      <option value="sunny">☀️ Sunny</option>
+      <option value="rainy">🌧 Rainy</option>
+      <option value="foggy">🌫 Foggy</option>
+    </select>
+    <label for="env-season">Season</label>
+    <select id="env-season">
+      <option value="spring">🌸 Spring</option>
+      <option value="summer">🌻 Summer</option>
+      <option value="autumn">🍂 Autumn</option>
+      <option value="winter">❄️ Winter</option>
+    </select>
+  </aside>
+
+  <script src="config.js"></script>
+  <script src="interaction.js"></script>
+  <script>
+    // ── Apply text from config ──────────────────────
+    document.getElementById('greeting-line').textContent = 'A garden for ' + GARDEN_CONFIG.recipientName;
+    document.getElementById('site-title').textContent = GARDEN_CONFIG.siteTitle;
+    document.getElementById('welcome-msg').textContent = GARDEN_CONFIG.welcomeMessage;
+    document.title = GARDEN_CONFIG.siteTitle;
+
+    // ── Render flowers ──────────────────────────────
+    const grid = document.getElementById('flower-grid');
+    const EMOJIS = { rose:'🌹', sunflower:'🌻', 'cherry-blossom':'🌸', lavender:'💜', tulip:'🌷', daisy:'🌼' };
+
+    GARDEN_CONFIG.flowers.forEach((f, i) => {
+      const a = document.createElement('a');
+      a.className = 'flower-card card';
+      a.href = f.file;
+      a.setAttribute('data-repel', '');
+      a.style.animationDelay = (i * 0.1) + 's';
+      a.innerHTML = `
+        <div class="card-inner">
+          <div class="flower-icon" style="background:${f.color}22; color:${f.color}">
+            ${EMOJIS[f.id] || '🌺'}
+          </div>
+          <div>
+            <h3>${f.name}</h3>
+            <p class="fun-fact">${f.funFact}</p>
+          </div>
+          <span class="visit-hint">Visit →</span>
+        </div>`;
+      grid.appendChild(a);
+    });
+
+    // ── Layout toggle ────────────────────────────────
+    let currentLayout = localStorage.getItem('garden_layout') || GARDEN_CONFIG.defaultGalleryLayout;
+
+    function applyLayout(layout) {
+      currentLayout = layout;
+      grid.className = 'layout-' + layout;
+      document.querySelectorAll('.layout-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.layout === layout);
+      });
+      localStorage.setItem('garden_layout', layout);
+
+      if (layout === 'scatter') applyScatter();
+    }
+
+    function applyScatter() {
+      const cards = grid.querySelectorAll('.flower-card');
+      const W = grid.offsetWidth, H = Math.max(grid.offsetHeight, window.innerHeight * 0.8);
+      grid.style.height = H + 'px';
+      cards.forEach(card => {
+        const cw = parseInt(getComputedStyle(card).width) || 220;
+        const x = Math.random() * (W - cw);
+        const y = Math.random() * (H - 200);
+        card.style.left = x + 'px';
+        card.style.top  = y + 'px';
+        card.style.transform = `rotate(${(Math.random()-0.5)*8}deg)`;
+      });
+    }
+
+    document.querySelectorAll('.layout-btn').forEach(btn => {
+      btn.addEventListener('click', () => applyLayout(btn.dataset.layout));
+    });
+    applyLayout(currentLayout);
+
+    // ── Environment ──────────────────────────────────
+    const env = GARDEN_CONFIG.environment;
+    const body = document.body;
+
+    function applyEnv(e) {
+      ['morning','sunset','night','sunny','rainy','foggy','spring','summer','autumn','winter']
+        .forEach(c => body.classList.remove('env-' + c));
+      body.classList.add('env-' + e.timeOfDay, 'env-' + e.weather, 'env-' + e.season);
+      document.getElementById('env-time').value = e.timeOfDay;
+      document.getElementById('env-weather').value = e.weather;
+      document.getElementById('env-season').value = e.season;
+      if (e.timeOfDay === 'night') drawStars();
+    }
+
+    document.getElementById('env-time').addEventListener('change', e => {
+      env.timeOfDay = e.target.value;
+      saveEnv();
+      applyEnv(env);
+    });
+    document.getElementById('env-weather').addEventListener('change', e => {
+      env.weather = e.target.value;
+      saveEnv();
+      applyEnv(env);
+    });
+    document.getElementById('env-season').addEventListener('change', e => {
+      env.season = e.target.value;
+      saveEnv();
+      applyEnv(env);
+    });
+
+    function saveEnv() {
+      localStorage.setItem('garden_env', JSON.stringify(env));
+    }
+
+    applyEnv(env);
+
+    // ── Stars ────────────────────────────────────────
+    function drawStars() {
+      const canvas = document.getElementById('stars');
+      if (!canvas) return;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < 180; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height * 0.7;
+        const r = Math.random() * 1.5 + 0.3;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.7 + 0.3})`;
+        ctx.fill();
+      }
+    }
+
+    // ── Ambient petals ────────────────────────────────
+    const PETAL_EMOJIS = ['🌸','🌺','🌼','✿','❀','🍃','🌿'];
+    for (let i = 0; i < 10; i++) {
+      const p = document.createElement('div');
+      p.className = 'ambient-petal';
+      p.setAttribute('data-repel', '');
+      p.textContent = PETAL_EMOJIS[Math.floor(Math.random() * PETAL_EMOJIS.length)];
+      p.style.left = (Math.random() * 100) + 'vw';
+      p.style.animationDuration = (8 + Math.random() * 14) + 's';
+      p.style.animationDelay    = (Math.random() * 12) + 's';
+      document.body.appendChild(p);
+    }
+  </script>
+</body>
+</html>
