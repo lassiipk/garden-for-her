@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tulip</title>
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    body { overflow: hidden; }
+
+    .flower-stage {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1;
+    }
+
+    .tulip-wrap {
+      position: relative;
+      width: clamp(160px, 30vmin, 280px);
+      height: clamp(260px, 50vmin, 420px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: tulipSway 6s ease-in-out infinite;
+    }
+    @keyframes tulipSway {
+      0%,100% { transform: rotate(-3deg); }
+      50%      { transform: rotate(3deg) translateY(-8px); }
+    }
+
+    /* Cup / bloom */
+    .tulip-bloom {
+      position: relative;
+      width: 70%;
+      height: 45%;
+      margin-top: 5%;
+    }
+
+    /* 6 petals forming the cup */
+    .t-petal {
+      position: absolute;
+      width: 45%;
+      height: 85%;
+      border-radius: 50% 50% 10% 10%;
+      transform-origin: 50% 100%;
+      animation: tPetalIn 1s var(--ease-gentle) both;
+    }
+    @keyframes tPetalIn {
+      from { transform: var(--rot) scaleY(0); opacity: 0; }
+    }
+
+    .tp0 { --rot: rotate(-30deg) translateX(-50%); background: linear-gradient(to top, #c83060, #e86090); left:50%; animation-delay:.1s; }
+    .tp1 { --rot: rotate(0deg)   translateX(-50%); background: linear-gradient(to top, #c02858, #e05880); left:50%; animation-delay:.2s; }
+    .tp2 { --rot: rotate(30deg)  translateX(-50%); background: linear-gradient(to top, #c83060, #d85878); left:50%; animation-delay:.3s; }
+    .tp3 { --rot: rotate(-50deg) translateX(-50%); background: linear-gradient(to top, #d03868, #ea6898); left:50%; animation-delay:.4s; }
+    .tp4 { --rot: rotate(50deg)  translateX(-50%); background: linear-gradient(to top, #c02858, #e06088); left:50%; animation-delay:.5s; }
+    .tp5 { --rot: rotate(15deg)  translateX(-50%); background: linear-gradient(to top, #cc3062, #e86090); left:50%; animation-delay:.3s; }
+
+    /* Inner highlight */
+    .t-inner {
+      position: absolute;
+      inset: 30% 20% 0;
+      background: radial-gradient(ellipse at 50% 80%, rgba(255,200,220,0.5), transparent);
+      pointer-events: none;
+    }
+
+    /* Stem */
+    .tulip-stem {
+      position: relative;
+      width: 8px;
+      height: clamp(120px, 25vmin, 200px);
+      background: linear-gradient(to bottom, #5aaa48, #3a7a30);
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .t-leaf {
+      position: absolute;
+      width: clamp(30px, 8vmin, 55px);
+      height: clamp(14px, 4vmin, 24px);
+      background: linear-gradient(135deg, #6ab858, #488040);
+      border-radius: 0 50% 50% 0;
+    }
+    .tl-1 { top: 20%; right: 4px; transform: rotate(-20deg) scaleX(-1); }
+    .tl-2 { top: 55%; left: 4px;  transform: rotate(-20deg); }
+
+    /* Sparkles */
+    .sparkle {
+      position: fixed;
+      pointer-events: none;
+      opacity: 0;
+      animation: sparkleAnim ease-in-out infinite;
+      font-size: clamp(0.8rem, 2vw, 1.2rem);
+      color: #e86090;
+    }
+    @keyframes sparkleAnim {
+      0%,100% { opacity: 0; transform: scale(0) rotate(0deg); }
+      50%      { opacity: 0.8; transform: scale(1) rotate(180deg); }
+    }
+
+    .info-panel {
+      position: fixed;
+      bottom: clamp(1rem, 4vw, 2rem);
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(560px, calc(100vw - 3rem));
+      z-index: 10;
+      padding: 1.4rem 1.8rem;
+      text-align: center;
+      animation: panelUp 0.8s 1.4s var(--ease-gentle) both;
+    }
+    @keyframes panelUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    }
+    .info-panel .fact { font-size: clamp(0.9rem, 2vw, 1.05rem); opacity: 0.65; font-style: italic; margin-bottom: 0.5rem; }
+    .info-panel .note { font-family: var(--font-display); font-size: clamp(1.1rem, 3vw, 1.5rem); }
+  </style>
+</head>
+<body>
+  <canvas class="stars" id="stars"></canvas>
+  <a href="../index.html" class="btn back-btn">← Garden</a>
+
+  <div class="flower-stage">
+    <div class="tulip-wrap" data-repel>
+      <div class="tulip-bloom">
+        <div class="t-petal tp0"></div>
+        <div class="t-petal tp1"></div>
+        <div class="t-petal tp2"></div>
+        <div class="t-petal tp3"></div>
+        <div class="t-petal tp4"></div>
+        <div class="t-petal tp5"></div>
+        <div class="t-inner"></div>
+      </div>
+      <div class="tulip-stem">
+        <div class="t-leaf tl-1"></div>
+        <div class="t-leaf tl-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-panel card">
+    <p class="fact" id="fun-fact"></p>
+    <p class="note" id="personal-note"></p>
+  </div>
+
+  <aside class="env-toggle">
+    <label for="env-time">Time</label>
+    <select id="env-time"><option value="morning">🌅 Morning</option><option value="sunset">🌇 Sunset</option><option value="night">🌙 Night</option></select>
+    <label for="env-weather">Weather</label>
+    <select id="env-weather"><option value="sunny">☀️ Sunny</option><option value="rainy">🌧 Rainy</option><option value="foggy">🌫 Foggy</option></select>
+    <label for="env-season">Season</label>
+    <select id="env-season"><option value="spring">🌸 Spring</option><option value="summer">🌻 Summer</option><option value="autumn">🍂 Autumn</option><option value="winter">❄️ Winter</option></select>
+  </aside>
+
+  <script src="../config.js"></script>
+  <script src="../flower-base.js"></script>
+  <script src="../interaction.js"></script>
+  <script>
+    renderFlowerMeta('tulip');
+    initEnvToggle();
+
+    // Sparkles
+    for (let i = 0; i < 8; i++) {
+      const s = document.createElement('div');
+      s.className = 'sparkle';
+      s.setAttribute('data-repel', '');
+      s.textContent = ['✦','✧','⋆','·'][Math.floor(Math.random()*4)];
+      s.style.left = (20 + Math.random() * 60) + 'vw';
+      s.style.top  = (10 + Math.random() * 60) + 'vh';
+      s.style.animationDuration = (2 + Math.random() * 3) + 's';
+      s.style.animationDelay    = (Math.random() * 4) + 's';
+      document.body.appendChild(s);
+    }
+  </script>
+</body>
+</html>

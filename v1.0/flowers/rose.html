@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rose</title>
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    body { overflow: hidden; }
+
+    /* ── Rose SVG stage ───────────────────── */
+    .flower-stage {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+
+    .rose-wrap {
+      position: relative;
+      width: clamp(220px, 40vmin, 360px);
+      height: clamp(220px, 40vmin, 360px);
+      cursor: default;
+    }
+
+    .rose-petal {
+      position: absolute;
+      width: 55%;
+      height: 55%;
+      border-radius: 50% 0 50% 0;
+      transform-origin: bottom right;
+      animation: bloomIn 1.8s var(--ease-gentle) both;
+    }
+    @keyframes bloomIn {
+      from { transform: var(--base-rot) scale(0) translateY(10px); opacity: 0; }
+      to   { transform: var(--base-rot) scale(1) translateY(0); opacity: 1; }
+    }
+    .rose-petal:hover { filter: brightness(1.1); }
+
+    /* 8 petals arranged in a circle */
+    .rp-0 { --base-rot: rotate(0deg);    background: radial-gradient(circle at 70% 70%, #f4a0b5, #d05070); top:0; left:22.5%; animation-delay:.1s; }
+    .rp-1 { --base-rot: rotate(45deg);   background: radial-gradient(circle at 70% 70%, #f0a8b8, #c84868); top:0; right:0;  animation-delay:.2s; }
+    .rp-2 { --base-rot: rotate(90deg);   background: radial-gradient(circle at 70% 70%, #e8a0b2, #d05878); right:0; top:22.5%; animation-delay:.3s; }
+    .rp-3 { --base-rot: rotate(135deg);  background: radial-gradient(circle at 70% 70%, #f0a0b8, #c84870); bottom:0; right:0; animation-delay:.4s; }
+    .rp-4 { --base-rot: rotate(180deg);  background: radial-gradient(circle at 70% 70%, #f4a4b8, #d05278); bottom:0; left:22.5%; animation-delay:.5s; }
+    .rp-5 { --base-rot: rotate(225deg);  background: radial-gradient(circle at 70% 70%, #eba0b5, #c84868); bottom:0; left:0;   animation-delay:.6s; }
+    .rp-6 { --base-rot: rotate(270deg);  background: radial-gradient(circle at 70% 70%, #f0a0b8, #d05070); left:0; top:22.5%; animation-delay:.7s; }
+    .rp-7 { --base-rot: rotate(315deg);  background: radial-gradient(circle at 70% 70%, #f4a8bc, #cc4870); top:0; left:0; animation-delay:.8s; }
+
+    /* Inner petals */
+    .rose-inner {
+      position: absolute;
+      inset: 20%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, #f8c0d0, #e0607a);
+      animation: bloomIn 2s 0.9s var(--ease-gentle) both;
+    }
+    .rose-center {
+      position: absolute;
+      inset: 35%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #ffd0e0, #c8485e);
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);
+      animation: bloomIn 2.2s 1.1s var(--ease-gentle) both;
+    }
+
+    /* Stem */
+    .rose-stem {
+      position: absolute;
+      bottom: -80px;
+      left: 50%;
+      width: 8px;
+      height: 90px;
+      background: linear-gradient(to bottom, #5a8a50, #3a6a38);
+      border-radius: 4px;
+      transform: translateX(-50%);
+      transform-origin: top center;
+      animation: stemGrow 1.2s 0.2s var(--ease-gentle) both;
+    }
+    @keyframes stemGrow {
+      from { height: 0; opacity: 0; }
+      to   { height: 90px; opacity: 1; }
+    }
+    .rose-leaf {
+      position: absolute;
+      width: 32px;
+      height: 20px;
+      background: linear-gradient(135deg, #6aaa5a, #4a8a42);
+      border-radius: 0 50% 0 50%;
+      animation: leafIn 0.8s 1s var(--ease-gentle) both;
+    }
+    .leaf-l { top: 20px; right: 4px; transform: rotate(-30deg); }
+    .leaf-r { top: 45px; left: 4px;  transform: rotate(150deg); animation-delay: 1.2s; }
+    @keyframes leafIn {
+      from { transform: scale(0) rotate(var(--lr, -30deg)); }
+    }
+
+    /* Continuous gentle sway */
+    .rose-wrap { animation: gentleSway 6s ease-in-out infinite; }
+    @keyframes gentleSway {
+      0%,100% { transform: rotate(-1.5deg) translateY(0); }
+      50%      { transform: rotate(1.5deg) translateY(-6px); }
+    }
+
+    /* Floating petals */
+    .fallen-petal {
+      position: fixed;
+      pointer-events: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50% 0 50% 0;
+      background: linear-gradient(135deg, #f4a0b5, #d05070);
+      opacity: 0;
+      animation: fall linear infinite;
+    }
+    @keyframes fall {
+      0%   { transform: translateY(-5vh) rotate(0deg) translateX(0); opacity: 0; }
+      10%  { opacity: 0.7; }
+      90%  { opacity: 0.3; }
+      100% { transform: translateY(105vh) rotate(360deg) translateX(30px); opacity: 0; }
+    }
+
+    /* ── Info panel ─────────────────────── */
+    .info-panel {
+      position: fixed;
+      bottom: clamp(1rem, 4vw, 2rem);
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(560px, calc(100vw - 3rem));
+      z-index: 10;
+      padding: 1.4rem 1.8rem;
+      text-align: center;
+      animation: panelUp 0.8s 1.4s var(--ease-gentle) both;
+    }
+    @keyframes panelUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    .info-panel .fact {
+      font-size: clamp(0.9rem, 2vw, 1.05rem);
+      opacity: 0.65;
+      font-style: italic;
+      margin-bottom: 0.5rem;
+    }
+    .info-panel .note {
+      font-family: var(--font-display);
+      font-size: clamp(1.1rem, 3vw, 1.5rem);
+      font-weight: 400;
+    }
+  </style>
+</head>
+<body>
+  <canvas class="stars" id="stars"></canvas>
+
+  <!-- Back button -->
+  <a href="../index.html" class="btn back-btn">← Garden</a>
+
+  <!-- Flower -->
+  <div class="flower-stage">
+    <div class="rose-wrap" data-repel>
+      <div class="rose-petal rp-0"></div>
+      <div class="rose-petal rp-1"></div>
+      <div class="rose-petal rp-2"></div>
+      <div class="rose-petal rp-3"></div>
+      <div class="rose-petal rp-4"></div>
+      <div class="rose-petal rp-5"></div>
+      <div class="rose-petal rp-6"></div>
+      <div class="rose-petal rp-7"></div>
+      <div class="rose-inner"></div>
+      <div class="rose-center"></div>
+      <div class="rose-stem">
+        <div class="rose-leaf leaf-l"></div>
+        <div class="rose-leaf leaf-r"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info panel -->
+  <div class="info-panel card">
+    <p class="fact" id="fun-fact"></p>
+    <p class="note" id="personal-note"></p>
+  </div>
+
+  <!-- Environment toggle -->
+  <aside class="env-toggle">
+    <label for="env-time">Time</label>
+    <select id="env-time"><option value="morning">🌅 Morning</option><option value="sunset">🌇 Sunset</option><option value="night">🌙 Night</option></select>
+    <label for="env-weather">Weather</label>
+    <select id="env-weather"><option value="sunny">☀️ Sunny</option><option value="rainy">🌧 Rainy</option><option value="foggy">🌫 Foggy</option></select>
+    <label for="env-season">Season</label>
+    <select id="env-season"><option value="spring">🌸 Spring</option><option value="summer">🌻 Summer</option><option value="autumn">🍂 Autumn</option><option value="winter">❄️ Winter</option></select>
+  </aside>
+
+  <script src="../config.js"></script>
+  <script src="../flower-base.js"></script>
+  <script src="../interaction.js"></script>
+  <script>
+    renderFlowerMeta('rose');
+    initEnvToggle();
+
+    // Falling petals
+    for (let i = 0; i < 8; i++) {
+      const p = document.createElement('div');
+      p.className = 'fallen-petal';
+      p.setAttribute('data-repel', '');
+      p.style.left = (10 + Math.random() * 80) + 'vw';
+      p.style.animationDuration = (6 + Math.random() * 8) + 's';
+      p.style.animationDelay = (Math.random() * 10) + 's';
+      document.body.appendChild(p);
+    }
+  </script>
+</body>
+</html>

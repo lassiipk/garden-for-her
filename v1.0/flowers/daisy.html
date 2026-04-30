@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daisy</title>
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    body { overflow: hidden; }
+
+    .flower-stage {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1;
+    }
+
+    .daisy-wrap {
+      position: relative;
+      width: clamp(200px, 38vmin, 340px);
+      height: clamp(200px, 38vmin, 340px);
+      animation: daisySpin 12s linear infinite, daisySway 5s ease-in-out infinite;
+    }
+    @keyframes daisySpin { to { transform: rotate(360deg); } }
+    @keyframes daisySway {
+      /* Override spin's transform with compound */
+    }
+
+    /* 20 petals — white/cream */
+    .d-petal {
+      position: absolute;
+      width: 12%;
+      height: 42%;
+      border-radius: 50%;
+      background: linear-gradient(to bottom, #ffffff, #f8f4e8);
+      transform-origin: 50% 100%;
+      left: 44%;
+      top: 8%;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      animation: dPetalIn 0.8s var(--ease-gentle) both;
+    }
+    @keyframes dPetalIn {
+      from { transform: var(--rot) scaleY(0); opacity: 0; }
+    }
+    /* Generate 20 petals via nth-child */
+    .d-petal:nth-child(1)  { --rot: rotate(0deg);   animation-delay:.02s; }
+    .d-petal:nth-child(2)  { --rot: rotate(18deg);  animation-delay:.04s; }
+    .d-petal:nth-child(3)  { --rot: rotate(36deg);  animation-delay:.06s; }
+    .d-petal:nth-child(4)  { --rot: rotate(54deg);  animation-delay:.08s; }
+    .d-petal:nth-child(5)  { --rot: rotate(72deg);  animation-delay:.10s; }
+    .d-petal:nth-child(6)  { --rot: rotate(90deg);  animation-delay:.12s; }
+    .d-petal:nth-child(7)  { --rot: rotate(108deg); animation-delay:.14s; }
+    .d-petal:nth-child(8)  { --rot: rotate(126deg); animation-delay:.16s; }
+    .d-petal:nth-child(9)  { --rot: rotate(144deg); animation-delay:.18s; }
+    .d-petal:nth-child(10) { --rot: rotate(162deg); animation-delay:.20s; }
+    .d-petal:nth-child(11) { --rot: rotate(180deg); animation-delay:.22s; }
+    .d-petal:nth-child(12) { --rot: rotate(198deg); animation-delay:.24s; }
+    .d-petal:nth-child(13) { --rot: rotate(216deg); animation-delay:.26s; }
+    .d-petal:nth-child(14) { --rot: rotate(234deg); animation-delay:.28s; }
+    .d-petal:nth-child(15) { --rot: rotate(252deg); animation-delay:.30s; }
+    .d-petal:nth-child(16) { --rot: rotate(270deg); animation-delay:.32s; }
+    .d-petal:nth-child(17) { --rot: rotate(288deg); animation-delay:.34s; }
+    .d-petal:nth-child(18) { --rot: rotate(306deg); animation-delay:.36s; }
+    .d-petal:nth-child(19) { --rot: rotate(324deg); animation-delay:.38s; }
+    .d-petal:nth-child(20) { --rot: rotate(342deg); animation-delay:.40s; }
+
+    .d-center {
+      position: absolute;
+      inset: 28%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #ffe060, #f0a020);
+      box-shadow: 0 3px 12px rgba(200,120,0,0.3);
+      animation: dPetalIn 1s 0.5s var(--ease-gentle) both;
+    }
+    .d-center::after {
+      content: '';
+      position: absolute;
+      inset: 15%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffd040, #d08010);
+    }
+
+    /* Slow gentle spin only after bloom */
+    .daisy-wrap { animation: daisyFloat 7s ease-in-out infinite; }
+    @keyframes daisyFloat {
+      0%,100% { transform: translateY(0) rotate(0deg); }
+      33%      { transform: translateY(-10px) rotate(4deg); }
+      66%      { transform: translateY(-4px) rotate(-4deg); }
+    }
+
+    .d-stem {
+      position: absolute;
+      bottom: -90px;
+      left: 50%;
+      width: 7px;
+      height: 100px;
+      background: linear-gradient(to bottom, #60a850, #409038);
+      border-radius: 3.5px;
+      transform: translateX(-50%);
+      animation: stemGrow 0.8s 0.2s var(--ease-gentle) both;
+    }
+    @keyframes stemGrow {
+      from { height: 0; }
+    }
+    .d-leaf {
+      position: absolute;
+      width: 28px;
+      height: 16px;
+      background: linear-gradient(135deg, #70b860, #508848);
+      border-radius: 50%;
+    }
+    .dl-1 { top: 20px; right: 3px; transform: rotate(-40deg) scaleX(-1); }
+    .dl-2 { top: 55px; left: 3px;  transform: rotate(-40deg); }
+
+    /* Floating pollen dots */
+    .pollen {
+      position: fixed;
+      pointer-events: none;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #f5c030;
+      opacity: 0;
+      animation: pollenFloat linear infinite;
+    }
+    @keyframes pollenFloat {
+      0%   { opacity: 0; transform: translateY(0) scale(0.5); }
+      15%  { opacity: 0.8; transform: translateY(-20px) scale(1); }
+      100% { opacity: 0; transform: translateY(-80vh) scale(0.5); }
+    }
+
+    .info-panel {
+      position: fixed;
+      bottom: clamp(1rem, 4vw, 2rem);
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(560px, calc(100vw - 3rem));
+      z-index: 10;
+      padding: 1.4rem 1.8rem;
+      text-align: center;
+      animation: panelUp 0.8s 1.2s var(--ease-gentle) both;
+    }
+    @keyframes panelUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    }
+    .info-panel .fact { font-size: clamp(0.9rem, 2vw, 1.05rem); opacity: 0.65; font-style: italic; margin-bottom: 0.5rem; }
+    .info-panel .note { font-family: var(--font-display); font-size: clamp(1.1rem, 3vw, 1.5rem); }
+  </style>
+</head>
+<body>
+  <canvas class="stars" id="stars"></canvas>
+  <a href="../index.html" class="btn back-btn">← Garden</a>
+
+  <div class="flower-stage">
+    <div class="daisy-wrap" data-repel>
+      <div class="d-petal"></div><div class="d-petal"></div><div class="d-petal"></div>
+      <div class="d-petal"></div><div class="d-petal"></div><div class="d-petal"></div>
+      <div class="d-petal"></div><div class="d-petal"></div><div class="d-petal"></div>
+      <div class="d-petal"></div><div class="d-petal"></div><div class="d-petal"></div>
+      <div class="d-petal"></div><div class="d-petal"></div><div class="d-petal"></div>
+      <div class="d-petal"></div><div class="d-petal"></div><div class="d-petal"></div>
+      <div class="d-petal"></div><div class="d-petal"></div>
+      <div class="d-center"></div>
+      <div class="d-stem">
+        <div class="d-leaf dl-1"></div>
+        <div class="d-leaf dl-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-panel card">
+    <p class="fact" id="fun-fact"></p>
+    <p class="note" id="personal-note"></p>
+  </div>
+
+  <aside class="env-toggle">
+    <label for="env-time">Time</label>
+    <select id="env-time"><option value="morning">🌅 Morning</option><option value="sunset">🌇 Sunset</option><option value="night">🌙 Night</option></select>
+    <label for="env-weather">Weather</label>
+    <select id="env-weather"><option value="sunny">☀️ Sunny</option><option value="rainy">🌧 Rainy</option><option value="foggy">🌫 Foggy</option></select>
+    <label for="env-season">Season</label>
+    <select id="env-season"><option value="spring">🌸 Spring</option><option value="summer">🌻 Summer</option><option value="autumn">🍂 Autumn</option><option value="winter">❄️ Winter</option></select>
+  </aside>
+
+  <script src="../config.js"></script>
+  <script src="../flower-base.js"></script>
+  <script src="../interaction.js"></script>
+  <script>
+    renderFlowerMeta('daisy');
+    initEnvToggle();
+
+    for (let i = 0; i < 10; i++) {
+      const p = document.createElement('div');
+      p.className = 'pollen';
+      p.setAttribute('data-repel', '');
+      p.style.left = (30 + Math.random() * 40) + 'vw';
+      p.style.top  = (30 + Math.random() * 30) + 'vh';
+      p.style.animationDuration = (3 + Math.random() * 5) + 's';
+      p.style.animationDelay    = (Math.random() * 6) + 's';
+      document.body.appendChild(p);
+    }
+  </script>
+</body>
+</html>

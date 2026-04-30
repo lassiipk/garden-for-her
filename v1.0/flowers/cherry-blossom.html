@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cherry Blossom</title>
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    body { overflow: hidden; }
+
+    .flower-stage {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1;
+    }
+
+    .blossom-wrap {
+      position: relative;
+      width: clamp(200px, 38vmin, 340px);
+      height: clamp(200px, 38vmin, 340px);
+      animation: blossomSway 7s ease-in-out infinite;
+    }
+    @keyframes blossomSway {
+      0%,100% { transform: rotate(-3deg) translateY(0); }
+      50%      { transform: rotate(3deg) translateY(-10px); }
+    }
+
+    /* 5 petals */
+    .b-petal {
+      position: absolute;
+      width: 44%;
+      height: 44%;
+      border-radius: 80% 0 80% 0;
+      transform-origin: bottom right;
+      animation: blPetalIn 1.2s var(--ease-gentle) both;
+    }
+    @keyframes blPetalIn {
+      from { transform: var(--rot) scale(0); opacity: 0; }
+      to   { transform: var(--rot) scale(1); opacity: 1; }
+    }
+    .bp0 { --rot: rotate(0deg);   background: radial-gradient(circle at 60% 60%, #ffd0e0, #f08aaa); top:0; left:28%; animation-delay:.1s; }
+    .bp1 { --rot: rotate(72deg);  background: radial-gradient(circle at 60% 60%, #ffc8d8, #ea80a2); top:0; right:0;  animation-delay:.2s; }
+    .bp2 { --rot: rotate(144deg); background: radial-gradient(circle at 60% 60%, #ffd4e4, #f090b0); bottom:0; right:0; animation-delay:.3s; }
+    .bp3 { --rot: rotate(216deg); background: radial-gradient(circle at 60% 60%, #ffc0d8, #e880a0); bottom:0; left:0;  animation-delay:.4s; }
+    .bp4 { --rot: rotate(288deg); background: radial-gradient(circle at 60% 60%, #ffd8e8, #f098b8); top:0; left:0;  animation-delay:.5s; }
+
+    .b-center {
+      position: absolute;
+      inset: 30%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #fffbe0, #f8e080);
+      box-shadow: 0 2px 10px rgba(200,100,120,0.2);
+      animation: blPetalIn 1.4s 0.7s var(--ease-gentle) both;
+    }
+    /* Stamens */
+    .b-stamen {
+      position: absolute;
+      inset: 0;
+    }
+    .b-stamen::before, .b-stamen::after {
+      content: '';
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      width: 2px;
+      height: 35%;
+      background: linear-gradient(to top, #f080a0, #ffd0e0);
+      border-radius: 1px;
+      transform-origin: bottom center;
+    }
+    .b-stamen::before { transform: translateX(-6px) rotate(-15deg); }
+    .b-stamen::after  { transform: translateX(4px) rotate(15deg); }
+
+    /* Branch */
+    .b-branch {
+      position: absolute;
+      bottom: -120px;
+      left: 40%;
+      width: 14px;
+      height: 130px;
+      background: linear-gradient(to bottom, #8a6040, #5a3a20);
+      border-radius: 7px 3px 3px 7px;
+      transform: translateX(-50%) rotate(-8deg);
+      transform-origin: top center;
+      animation: stemGrow 1s 0.2s var(--ease-gentle) both;
+    }
+    @keyframes stemGrow {
+      from { height: 0; }
+    }
+    .b-twig {
+      position: absolute;
+      width: 8px;
+      background: linear-gradient(to right, #7a5030, #5a3820);
+      border-radius: 4px;
+      transform-origin: left center;
+    }
+    .b-twig-1 { height: 60px; top: 10px; right: -30px; transform: rotate(30deg); }
+    .b-twig-2 { height: 45px; top: 50px; left: 0px; transform: rotate(-30deg); }
+
+    /* Falling blossoms */
+    .falling-blossom {
+      position: fixed;
+      pointer-events: none;
+      font-size: clamp(0.8rem, 2vw, 1.2rem);
+      opacity: 0;
+      animation: blossomFall linear infinite;
+    }
+    @keyframes blossomFall {
+      0%   { transform: translateY(-5vh) rotate(0deg); opacity: 0; }
+      8%   { opacity: 0.85; }
+      92%  { opacity: 0.4; }
+      100% { transform: translateY(108vh) rotate(480deg) translateX(50px); opacity: 0; }
+    }
+
+    .info-panel {
+      position: fixed;
+      bottom: clamp(1rem, 4vw, 2rem);
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(560px, calc(100vw - 3rem));
+      z-index: 10;
+      padding: 1.4rem 1.8rem;
+      text-align: center;
+      animation: panelUp 0.8s 1.5s var(--ease-gentle) both;
+    }
+    @keyframes panelUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    }
+    .info-panel .fact { font-size: clamp(0.9rem, 2vw, 1.05rem); opacity: 0.65; font-style: italic; margin-bottom: 0.5rem; }
+    .info-panel .note { font-family: var(--font-display); font-size: clamp(1.1rem, 3vw, 1.5rem); }
+  </style>
+</head>
+<body>
+  <canvas class="stars" id="stars"></canvas>
+  <a href="../index.html" class="btn back-btn">← Garden</a>
+
+  <div class="flower-stage">
+    <div class="blossom-wrap" data-repel>
+      <div class="b-petal bp0"></div>
+      <div class="b-petal bp1"></div>
+      <div class="b-petal bp2"></div>
+      <div class="b-petal bp3"></div>
+      <div class="b-petal bp4"></div>
+      <div class="b-center">
+        <div class="b-stamen"></div>
+      </div>
+      <div class="b-branch">
+        <div class="b-twig b-twig-1"></div>
+        <div class="b-twig b-twig-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-panel card">
+    <p class="fact" id="fun-fact"></p>
+    <p class="note" id="personal-note"></p>
+  </div>
+
+  <aside class="env-toggle">
+    <label for="env-time">Time</label>
+    <select id="env-time"><option value="morning">🌅 Morning</option><option value="sunset">🌇 Sunset</option><option value="night">🌙 Night</option></select>
+    <label for="env-weather">Weather</label>
+    <select id="env-weather"><option value="sunny">☀️ Sunny</option><option value="rainy">🌧 Rainy</option><option value="foggy">🌫 Foggy</option></select>
+    <label for="env-season">Season</label>
+    <select id="env-season"><option value="spring">🌸 Spring</option><option value="summer">🌻 Summer</option><option value="autumn">🍂 Autumn</option><option value="winter">❄️ Winter</option></select>
+  </aside>
+
+  <script src="../config.js"></script>
+  <script src="../flower-base.js"></script>
+  <script src="../interaction.js"></script>
+  <script>
+    renderFlowerMeta('cherry-blossom');
+    initEnvToggle();
+
+    for (let i = 0; i < 14; i++) {
+      const p = document.createElement('div');
+      p.className = 'falling-blossom';
+      p.setAttribute('data-repel', '');
+      p.textContent = ['🌸','✿','❀'][Math.floor(Math.random()*3)];
+      p.style.left = (Math.random() * 100) + 'vw';
+      p.style.animationDuration = (5 + Math.random() * 8) + 's';
+      p.style.animationDelay = (Math.random() * 10) + 's';
+      document.body.appendChild(p);
+    }
+  </script>
+</body>
+</html>

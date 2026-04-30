@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Flower</title>
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    body { overflow: hidden; }
+
+    .flower-stage {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1;
+    }
+
+    /* ┌─────────────────────────────────────────────┐
+       │  REPLACE THIS SECTION with your flower CSS  │
+       └─────────────────────────────────────────────┘ */
+    .flower-placeholder {
+      font-size: 8rem;
+      animation: gentleFloat 4s ease-in-out infinite;
+    }
+    @keyframes gentleFloat {
+      0%,100% { transform: translateY(0) rotate(-3deg); }
+      50%      { transform: translateY(-12px) rotate(3deg); }
+    }
+    /* ───────────────────────────────────────────── */
+
+    .info-panel {
+      position: fixed;
+      bottom: clamp(1rem, 4vw, 2rem);
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(560px, calc(100vw - 3rem));
+      z-index: 10;
+      padding: 1.4rem 1.8rem;
+      text-align: center;
+      animation: panelUp 0.8s 0.8s var(--ease-gentle) both;
+    }
+    @keyframes panelUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    }
+    .info-panel .fact { font-size: clamp(0.9rem, 2vw, 1.05rem); opacity: 0.65; font-style: italic; margin-bottom: 0.5rem; }
+    .info-panel .note { font-family: var(--font-display); font-size: clamp(1.1rem, 3vw, 1.5rem); }
+  </style>
+</head>
+<body>
+  <canvas class="stars" id="stars"></canvas>
+  <a href="../index.html" class="btn back-btn">← Garden</a>
+
+  <!-- ┌─────────────────────────────────────────────┐
+       │  REPLACE THIS with your flower HTML         │
+       └─────────────────────────────────────────────┘ -->
+  <div class="flower-stage">
+    <div class="flower-placeholder" data-repel>🌺</div>
+  </div>
+  <!-- ───────────────────────────────────────────── -->
+
+  <div class="info-panel card">
+    <p class="fact" id="fun-fact"></p>
+    <p class="note" id="personal-note"></p>
+  </div>
+
+  <aside class="env-toggle">
+    <label for="env-time">Time</label>
+    <select id="env-time"><option value="morning">🌅 Morning</option><option value="sunset">🌇 Sunset</option><option value="night">🌙 Night</option></select>
+    <label for="env-weather">Weather</label>
+    <select id="env-weather"><option value="sunny">☀️ Sunny</option><option value="rainy">🌧 Rainy</option><option value="foggy">🌫 Foggy</option></select>
+    <label for="env-season">Season</label>
+    <select id="env-season"><option value="spring">🌸 Spring</option><option value="summer">🌻 Summer</option><option value="autumn">🍂 Autumn</option><option value="winter">❄️ Winter</option></select>
+  </aside>
+
+  <script src="../config.js"></script>
+  <script src="../flower-base.js"></script>
+  <script src="../interaction.js"></script>
+  <script>
+    // ⬇ Change 'your-flower-id' to match the id in config.js
+    renderFlowerMeta('your-flower-id');
+    initEnvToggle();
+  </script>
+</body>
+</html>
