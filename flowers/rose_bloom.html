@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rose in Bloom</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap');
+
+    :root {
+      --rose-deep:   #a02848;
+      --rose-mid:    #c84060;
+      --rose-light:  #e8809a;
+      --rose-pale:   #f5bcd0;
+      --rose-blush:  #fce8ee;
+      --leaf-dark:   #1a5c1a;
+      --leaf-mid:    #2d7a2d;
+      --leaf-light:  #4aaa4a;
+      --stem:        #1e5c1e;
+      --bg-top:      #0a0008;
+      --bg-bot:      #1a0010;
+      --gold:        #e8c97a;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: linear-gradient(160deg, var(--bg-top) 0%, var(--bg-bot) 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cormorant Garamond', 'Georgia', serif;
+      overflow: hidden;
+    }
+
+    /* Ambient noise grain */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+      opacity: 0.18;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .stage {
+      position: relative;
+      width: 420px;
+      height: 600px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      z-index: 1;
+    }
+
+    /* Soft glow behind rose */
+    .glow {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(200,64,96,0.18) 0%, transparent 70%);
+      opacity: 0;
+      animation: glowIn 1.5s ease 3s forwards;
+      pointer-events: none;
+    }
+    @keyframes glowIn { to { opacity: 1; } }
+
+    /* Title */
+    .title-wrap {
+      position: absolute;
+      top: 36px;
+      text-align: center;
+      opacity: 0;
+      animation: fadeUp 1.2s ease 4s forwards;
+    }
+    .title-wrap h1 {
+      font-size: 48px;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--rose-pale);
+      letter-spacing: 0.08em;
+      line-height: 1;
+    }
+    .title-wrap p {
+      font-size: 14px;
+      font-weight: 300;
+      color: rgba(245,188,208,0.5);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Decorative line */
+    .deco-line {
+      position: absolute;
+      top: 116px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0;
+      animation: lineExpand 1s ease 4.5s forwards;
+    }
+    @keyframes lineExpand {
+      to { width: 160px; opacity: 0.6; }
+    }
+
+    /* Main rose SVG */
+    svg#rose {
+      overflow: visible;
+      position: relative;
+      z-index: 2;
+      margin-bottom: 32px;
+    }
+
+    /* ---- Rose animations ---- */
+    .stem {
+      stroke: var(--stem);
+      stroke-width: 5;
+      stroke-linecap: round;
+      fill: none;
+      stroke-dasharray: 240;
+      stroke-dashoffset: 240;
+      animation: growStem 1.4s cubic-bezier(0.4,0,0.2,1) 0.3s forwards;
+    }
+    @keyframes growStem { to { stroke-dashoffset: 0; } }
+
+    .thorn {
+      stroke: var(--leaf-mid);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      fill: none;
+      stroke-dasharray: 28;
+      stroke-dashoffset: 28;
+    }
+    .t1 { animation: growStem 0.35s ease 1.5s forwards; }
+    .t2 { animation: growStem 0.35s ease 1.8s forwards; }
+
+    .leaf-l {
+      fill: url(#lgL);
+      transform-origin: 165px 368px;
+      transform: scale(0);
+      animation: pop 0.65s cubic-bezier(0.34,1.56,0.64,1) 1.4s forwards;
+    }
+    .leaf-r {
+      fill: url(#lgR);
+      transform-origin: 195px 345px;
+      transform: scale(0);
+      animation: pop 0.65s cubic-bezier(0.34,1.56,0.64,1) 1.7s forwards;
+    }
+    .leaf-vein-l {
+      stroke: var(--leaf-dark); stroke-width: 1; fill: none; opacity: 0.5;
+      stroke-dasharray: 55; stroke-dashoffset: 55;
+      animation: growStem 0.45s ease 1.5s forwards;
+    }
+    .leaf-vein-r {
+      stroke: var(--leaf-dark); stroke-width: 1; fill: none; opacity: 0.5;
+      stroke-dasharray: 55; stroke-dashoffset: 55;
+      animation: growStem 0.45s ease 1.8s forwards;
+    }
+    @keyframes pop { to { transform: scale(1); } }
+
+    .sepal {
+      transform-origin: 185px 255px;
+      transform: scale(0);
+      animation: pop 0.5s cubic-bezier(0.34,1.4,0.64,1) 2s forwards;
+    }
+
+    /* Petal layers */
+    .pl { transform-origin: 185px 218px; }
+    .pl1 { transform: scale(0) rotate(-12deg); animation: bloomP 0.6s cubic-bezier(0.34,1.4,0.64,1) 2.2s forwards; }
+    .pl2 { transform: scale(0) rotate(18deg);  animation: bloomP 0.6s cubic-bezier(0.34,1.4,0.64,1) 2.4s forwards; }
+    .pl3 { transform: scale(0) rotate(-30deg); animation: bloomP 0.6s cubic-bezier(0.34,1.4,0.64,1) 2.6s forwards; }
+    .pl4 { transform: scale(0) rotate(8deg);   animation: bloomP 0.6s cubic-bezier(0.34,1.4,0.64,1) 2.8s forwards; }
+    .pl5 { transform: scale(0);               animation: bloomP 0.6s cubic-bezier(0.34,1.4,0.64,1) 3.0s forwards; }
+    .pl6 { transform: scale(0);               animation: bloomP 0.55s cubic-bezier(0.34,1.56,0.64,1) 3.2s forwards; }
+    .plC { transform: scale(0);               animation: bloomP 0.5s cubic-bezier(0.34,1.56,0.64,1) 3.5s forwards; }
+    @keyframes bloomP { to { transform: scale(1) rotate(0deg); } }
+
+    /* Sparkles */
+    .spark { opacity: 0; animation: spark 0.7s ease-out forwards; }
+    .sk1 { animation-delay: 3.7s; }
+    .sk2 { animation-delay: 3.9s; }
+    .sk3 { animation-delay: 3.8s; }
+    .sk4 { animation-delay: 4.0s; }
+    @keyframes spark {
+      0%   { opacity: 0; transform: scale(0); }
+      50%  { opacity: 1; transform: scale(1.3); }
+      100% { opacity: 0; transform: scale(0.8); }
+    }
+
+    /* Sway after full bloom */
+    .rose-g {
+      transform-origin: 185px 450px;
+      animation: sway 5s ease-in-out 4.5s infinite;
+    }
+    @keyframes sway {
+      0%,100% { transform: rotate(0deg); }
+      25%      { transform: rotate(1.8deg); }
+      75%      { transform: rotate(-1.8deg); }
+    }
+
+    /* Floating petals */
+    .fp {
+      opacity: 0;
+      animation: floatP linear infinite;
+    }
+    @keyframes floatP {
+      0%   { opacity: 0; transform: translateY(0) rotate(0deg) scale(1); }
+      10%  { opacity: 0.65; }
+      85%  { opacity: 0.3; }
+      100% { opacity: 0; transform: translateY(-560px) rotate(400deg) scale(0.6); }
+    }
+
+    /* Corner ornaments */
+    .ornament {
+      position: absolute;
+      opacity: 0;
+      animation: fadeUp 1s ease 5s forwards;
+    }
+    .ornament.tl { top: 20px; left: 20px; }
+    .ornament.tr { top: 20px; right: 20px; transform: scaleX(-1); }
+    .ornament.bl { bottom: 20px; left: 20px; transform: scaleY(-1); }
+    .ornament.br { bottom: 20px; right: 20px; transform: scale(-1,-1); }
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <!-- Ambient glow -->
+    <div class="glow"></div>
+
+    <!-- Title -->
+    <div class="title-wrap">
+      <h1>For You </h1>
+      <p>Who love flowers</p>
+    </div>
+    <div class="deco-line"></div>
+
+    <!-- Corner ornaments -->
+    <svg class="ornament tl" width="48" height="48" viewBox="0 0 48 48">
+      <path d="M4 44 L4 4 L44 4" stroke="rgba(232,201,122,0.35)" stroke-width="1" fill="none"/>
+      <circle cx="4" cy="4" r="2.5" fill="rgba(232,201,122,0.4)"/>
+    </svg>
+    <svg class="ornament tr" width="48" height="48" viewBox="0 0 48 48">
+      <path d="M4 44 L4 4 L44 4" stroke="rgba(232,201,122,0.35)" stroke-width="1" fill="none"/>
+      <circle cx="4" cy="4" r="2.5" fill="rgba(232,201,122,0.4)"/>
+    </svg>
+    <svg class="ornament bl" width="48" height="48" viewBox="0 0 48 48">
+      <path d="M4 44 L4 4 L44 4" stroke="rgba(232,201,122,0.35)" stroke-width="1" fill="none"/>
+      <circle cx="4" cy="4" r="2.5" fill="rgba(232,201,122,0.4)"/>
+    </svg>
+    <svg class="ornament br" width="48" height="48" viewBox="0 0 48 48">
+      <path d="M4 44 L4 4 L44 4" stroke="rgba(232,201,122,0.35)" stroke-width="1" fill="none"/>
+      <circle cx="4" cy="4" r="2.5" fill="rgba(232,201,122,0.4)"/>
+    </svg>
+
+    <!-- Floating ambient petals (behind rose) -->
+    <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1" viewBox="0 0 420 600">
+      <ellipse class="fp" cx="60"  cy="590" rx="10" ry="6" fill="#e8809a" style="animation-duration:7s;animation-delay:4.5s"/>
+      <ellipse class="fp" cx="340" cy="590" rx="8"  ry="5" fill="#f0a0b4" style="animation-duration:8.5s;animation-delay:5.2s"/>
+      <ellipse class="fp" cx="100" cy="590" rx="9"  ry="5" fill="#c84060" style="animation-duration:6s;animation-delay:6s"/>
+      <ellipse class="fp" cx="280" cy="590" rx="11" ry="6" fill="#e8809a" style="animation-duration:9s;animation-delay:4.8s"/>
+      <ellipse class="fp" cx="190" cy="590" rx="7"  ry="4" fill="#f5bcd0" style="animation-duration:7.5s;animation-delay:6.5s"/>
+      <ellipse class="fp" cx="360" cy="590" rx="9"  ry="5" fill="#a02848" style="animation-duration:8s;animation-delay:7.2s"/>
+      <ellipse class="fp" cx="30"  cy="590" rx="8"  ry="4" fill="#f0a0b4" style="animation-duration:10s;animation-delay:5s"/>
+      <ellipse class="fp" cx="220" cy="590" rx="10" ry="5" fill="#e06080" style="animation-duration:7.8s;animation-delay:5.7s"/>
+      <ellipse class="fp" cx="150" cy="590" rx="7"  ry="4" fill="#fce8ee" style="animation-duration:6.5s;animation-delay:8s"/>
+      <ellipse class="fp" cx="390" cy="590" rx="8"  ry="5" fill="#c84060" style="animation-duration:9.5s;animation-delay:6.8s"/>
+    </svg>
+
+    <!-- Main Rose -->
+    <svg id="rose" width="370" height="480" viewBox="0 0 370 480">
+      <defs>
+        <radialGradient id="rg1" cx="45%" cy="55%" r="52%">
+          <stop offset="0%" stop-color="#f9d0dc"/>
+          <stop offset="50%" stop-color="#d85a78"/>
+          <stop offset="100%" stop-color="#a02848"/>
+        </radialGradient>
+        <radialGradient id="rg2" cx="40%" cy="40%" r="55%">
+          <stop offset="0%" stop-color="#f5bcd0"/>
+          <stop offset="60%" stop-color="#c04068"/>
+          <stop offset="100%" stop-color="#882040"/>
+        </radialGradient>
+        <radialGradient id="rg3" cx="50%" cy="35%" r="55%">
+          <stop offset="0%" stop-color="#fce8ee"/>
+          <stop offset="40%" stop-color="#e8809a"/>
+          <stop offset="100%" stop-color="#b83060"/>
+        </radialGradient>
+        <radialGradient id="rgC" cx="50%" cy="45%" r="50%">
+          <stop offset="0%" stop-color="#fce8ee"/>
+          <stop offset="100%" stop-color="#c04868"/>
+        </radialGradient>
+        <radialGradient id="lgL" cx="60%" cy="35%" r="55%">
+          <stop offset="0%" stop-color="#70c470"/>
+          <stop offset="100%" stop-color="#1a5c1a"/>
+        </radialGradient>
+        <radialGradient id="lgR" cx="40%" cy="35%" r="55%">
+          <stop offset="0%" stop-color="#5ab85a"/>
+          <stop offset="100%" stop-color="#165016"/>
+        </radialGradient>
+        <filter id="softBlur">
+          <feGaussianBlur stdDeviation="0.8"/>
+        </filter>
+      </defs>
+
+      <g class="rose-g">
+
+        <!-- Stem -->
+        <path class="stem" d="M185 448 Q183 375 185 285"/>
+
+        <!-- Thorns -->
+        <path class="thorn t1" d="M181 385 Q166 372 160 360"/>
+        <path class="thorn t2" d="M189 355 Q204 342 208 328"/>
+
+        <!-- Leaves -->
+        <path class="leaf-l" d="M181 372 Q140 348 134 310 Q158 322 180 355 Z"/>
+        <path class="leaf-vein-l" d="M180 372 Q156 344 155 312"/>
+        <path class="leaf-r" d="M189 352 Q232 328 236 290 Q210 304 188 335 Z"/>
+        <path class="leaf-vein-r" d="M189 352 Q214 326 215 292"/>
+
+        <!-- Sepal -->
+        <g class="sepal">
+          <path d="M185 262 Q168 244 157 228 Q173 234 185 252 Q197 234 213 228 Q202 244 185 262Z" fill="#2d8a2d"/>
+          <path d="M185 262 Q160 252 150 240 Q166 242 185 256 Z" fill="#1e6e1e"/>
+          <path d="M185 262 Q210 252 220 240 Q204 242 185 256 Z" fill="#1e6e1e"/>
+        </g>
+
+        <!-- Petal layer 1 — far outer -->
+        <g class="pl pl1">
+          <ellipse cx="158" cy="218" rx="32" ry="50" fill="url(#rg2)" opacity="0.88" transform="rotate(-28,158,218)"/>
+          <ellipse cx="212" cy="218" rx="32" ry="50" fill="url(#rg2)" opacity="0.88" transform="rotate(28,212,218)"/>
+          <ellipse cx="185" cy="185" rx="30" ry="48" fill="url(#rg1)" opacity="0.85"/>
+        </g>
+
+        <!-- Petal layer 2 -->
+        <g class="pl pl2">
+          <ellipse cx="150" cy="224" rx="29" ry="43" fill="url(#rg1)" opacity="0.9" transform="rotate(-20,150,224)"/>
+          <ellipse cx="220" cy="224" rx="29" ry="43" fill="url(#rg1)" opacity="0.9" transform="rotate(20,220,224)"/>
+        </g>
+
+        <!-- Petal layer 3 -->
+        <g class="pl pl3">
+          <ellipse cx="160" cy="232" rx="26" ry="38" fill="url(#rg2)" opacity="0.93" transform="rotate(-38,160,232)"/>
+          <ellipse cx="210" cy="232" rx="26" ry="38" fill="url(#rg2)" opacity="0.93" transform="rotate(38,210,232)"/>
+          <ellipse cx="185" cy="196" rx="25" ry="40" fill="url(#rg3)" opacity="0.88"/>
+        </g>
+
+        <!-- Petal layer 4 -->
+        <g class="pl pl4">
+          <ellipse cx="166" cy="224" rx="23" ry="34" fill="url(#rg1)" opacity="0.94" transform="rotate(-18,166,224)"/>
+          <ellipse cx="204" cy="224" rx="23" ry="34" fill="url(#rg1)" opacity="0.94" transform="rotate(18,204,224)"/>
+          <ellipse cx="185" cy="204" rx="22" ry="34" fill="url(#rg2)" opacity="0.92" transform="rotate(-6,185,204)"/>
+          <ellipse cx="185" cy="204" rx="22" ry="34" fill="url(#rg2)" opacity="0.88" transform="rotate(10,185,204)"/>
+        </g>
+
+        <!-- Petal layer 5 -->
+        <g class="pl pl5">
+          <ellipse cx="170" cy="222" rx="19" ry="28" fill="url(#rg3)" opacity="0.95" transform="rotate(-24,170,222)"/>
+          <ellipse cx="200" cy="222" rx="19" ry="28" fill="url(#rg3)" opacity="0.95" transform="rotate(24,200,222)"/>
+          <ellipse cx="185" cy="210" rx="19" ry="28" fill="url(#rg1)" opacity="0.93"/>
+        </g>
+
+        <!-- Petal layer 6 — inner -->
+        <g class="pl pl6">
+          <ellipse cx="174" cy="220" rx="15" ry="22" fill="url(#rg2)" opacity="0.97" transform="rotate(-14,174,220)"/>
+          <ellipse cx="196" cy="220" rx="15" ry="22" fill="url(#rg2)" opacity="0.97" transform="rotate(14,196,220)"/>
+          <ellipse cx="185" cy="214" rx="15" ry="22" fill="url(#rg3)" opacity="0.95"/>
+        </g>
+
+        <!-- Center spiral -->
+        <g class="pl plC">
+          <ellipse cx="185" cy="218" rx="11" ry="15" fill="url(#rgC)"/>
+          <path d="M185 210 Q189 214 185 219 Q181 214 185 210Z" fill="#fce8ee" opacity="0.85"/>
+          <ellipse cx="185" cy="221" rx="6" ry="8" fill="#c84060"/>
+          <ellipse cx="185" cy="223" rx="3.5" ry="4.5" fill="#a02848"/>
+        </g>
+
+        <!-- Sparkles -->
+        <g class="spark sk1">
+          <line x1="143" y1="186" x2="143" y2="174" stroke="#ffd6e0" stroke-width="1.8"/>
+          <line x1="137" y1="192" x2="125" y2="192" stroke="#ffd6e0" stroke-width="1.8"/>
+          <line x1="139" y1="188" x2="131" y2="180" stroke="#ffd6e0" stroke-width="1.5"/>
+          <line x1="147" y1="188" x2="155" y2="180" stroke="#ffd6e0" stroke-width="1.5"/>
+        </g>
+        <g class="spark sk2">
+          <line x1="228" y1="190" x2="228" y2="178" stroke="#ffd6e0" stroke-width="1.8"/>
+          <line x1="222" y1="196" x2="210" y2="196" stroke="#ffd6e0" stroke-width="1.8"/>
+          <line x1="224" y1="192" x2="216" y2="184" stroke="#ffd6e0" stroke-width="1.5"/>
+          <line x1="232" y1="192" x2="240" y2="184" stroke="#ffd6e0" stroke-width="1.5"/>
+        </g>
+        <g class="spark sk3">
+          <line x1="163" y1="168" x2="163" y2="160" stroke="#ffb8cc" stroke-width="1.5"/>
+          <line x1="158" y1="173" x2="150" y2="173" stroke="#ffb8cc" stroke-width="1.5"/>
+        </g>
+        <g class="spark sk4">
+          <line x1="210" y1="170" x2="210" y2="162" stroke="#ffb8cc" stroke-width="1.5"/>
+          <line x1="205" y1="175" x2="197" y2="175" stroke="#ffb8cc" stroke-width="1.5"/>
+        </g>
+
+      </g><!-- end rose-g -->
+    </svg>
+
+  </div>
+</body>
+</html>
